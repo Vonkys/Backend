@@ -1,15 +1,20 @@
-
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+
 const app = express();
+const PORT = process.env.PORT || 3000;
+const API_KEY = process.env.PI_API_KEY;
 
 app.use(cors());
 app.use(express.json());
 
 app.post("/verify", async (req, res) => {
   const accessToken = req.body.accessToken;
-  const API_KEY = process.env.PI_API_KEY;
+
+  if (!accessToken) {
+    return res.status(400).json({ error: "Missing access token" });
+  }
 
   try {
     const response = await fetch("https://api.minepi.com/v2/me", {
@@ -21,15 +26,17 @@ app.post("/verify", async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("✅ Server response:", data);
-    res.json(data);
-  } catch (error) {
-    console.error("❌ Error verifying user:", error);
-    res.status(500).json({ error: "Verification failed" });
+
+    if (data && data.username) {
+      res.json({ success: true, username: data.username });
+    } else {
+      res.status(401).json({ error: "Invalid token" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`🚀 Server listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
