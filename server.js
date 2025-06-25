@@ -1,10 +1,12 @@
+// server.js
+
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)); // workaround pro ESM
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.PI_API_KEY;
+const API_KEY = "8srbeawwdm8fdtkvowe82karrmvq1wmga5obshqn6qgwdxsom5l3tmxjebiugh6b"; // sem si dal svůj API klíč napevno
 
 app.use(cors());
 app.use(express.json());
@@ -33,10 +35,11 @@ app.post("/verify", async (req, res) => {
       res.status(401).json({ error: "Invalid token" });
     }
   } catch (err) {
+    console.error("❌ Server error:", err);
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server běží na portu ${PORT}`);
 });
