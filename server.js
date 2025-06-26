@@ -26,7 +26,15 @@ app.post("/verify", async function (req, res) {
       }
     });
 
-    const data = await response.json();
+    const text = await response.text(); // přečteme odpověď jako text
+    let data = null;
+
+    try {
+      data = JSON.parse(text); // pokus o převod na JSON
+    } catch (e) {
+      console.error("⚠ Neplatná JSON odpověď z Pi API:", text);
+      return res.status(502).json({ error: "Invalid response from Pi API" });
+    }
 
     if (data && data.username) {
       res.json({ success: true, username: data.username });
