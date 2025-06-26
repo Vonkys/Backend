@@ -4,7 +4,7 @@ const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fet
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_KEY = "8srbeawwdm8fdtkvowe82karrmvq1wmga5obshqn6qgwdxsom5l3tmxjebiugh6b";
+const API_KEY = "d6wu3r8ok6ko2udjgzul2fdok000o53kffr9j3lywrqqb2pyrjkfjadlrzw3vihn";
 
 app.use(cors());
 app.use(express.json());
