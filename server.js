@@ -1,17 +1,16 @@
-// server.js
-
 const express = require("express");
 const cors = require("cors");
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)); // workaround pro ESM
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_KEY = "8srbeawwdm8fdtkvowe82karrmvq1wmga5obshqn6qgwdxsom5l3tmxjebiugh6b"; // sem si dal svůj API klíč napevno
+const API_KEY = "8srbeawwdm8fdtkvowe82karrmvq1wmga5obshqn6qgwdxsom5l3tmxjebiugh6b";
 
 app.use(cors());
 app.use(express.json());
 
-app.post("/verify", async (req, res) => {
+// Přihlášení – ověření accessTokenu
+app.post("/verify", async function (req, res) {
   const accessToken = req.body.accessToken;
 
   if (!accessToken) {
@@ -22,9 +21,9 @@ app.post("/verify", async (req, res) => {
     const response = await fetch("https://api.minepi.com/v2/me", {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-API-Key": API_KEY,
-      },
+        Authorization: "Bearer " + accessToken,
+        "X-API-Key": API_KEY
+      }
     });
 
     const data = await response.json();
@@ -40,6 +39,33 @@ app.post("/verify", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Server běží na portu ${PORT}`);
+// Platba – schválení platby
+app.post("/approve", async function (req, res) {
+  const paymentId = req.body.paymentId;
+
+  if (!paymentId) {
+    return res.status(400).json({ error: "Missing paymentId" });
+  }
+
+  console.log("✅ Platba připravena ke schválení: " + paymentId);
+
+  res.json({ success: true });
+});
+
+// Platba – finální potvrzení platby
+app.post("/complete", async function (req, res) {
+  const paymentId = req.body.paymentId;
+  const txid = req.body.txid;
+
+  if (!paymentId || !txid) {
+    return res.status(400).json({ error: "Missing paymentId or txid" });
+  }
+
+  console.log("✅ Platba potvrzena: paymentId=" + paymentId + ", txid=" + txid);
+
+  res.json({ success: true });
+});
+
+app.listen(PORT, function () {
+  console.log("✅ Server běží na portu " + PORT);
 });
