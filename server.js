@@ -1,18 +1,18 @@
+// Pi Payments backend – čistá verze
 const express = require("express");
 const cors = require("cors");
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_KEY = "ncch7lagkhrgquydyvv8g6wu70irf6xogg2vutxqhjawrjuld8y38h0cmdovrtoo";
+const API_KEY = "ncch7lagkhrgquydyvv8g6wu70irf6xogg2vutxqhjawrjuld8y38h0cmdovrtoo"; // <-- AKTUÁLNÍ PI API KLÍČ
 
 app.use(cors());
 app.use(express.json());
 
-// Přihlášení – ověření accessTokenu
+// Ověření accessTokenu (pro /verify volání)
 app.post("/verify", async function (req, res) {
   const accessToken = req.body.accessToken;
-
   if (!accessToken) {
     return res.status(400).json({ error: "Missing access token" });
   }
@@ -26,11 +26,10 @@ app.post("/verify", async function (req, res) {
       }
     });
 
-    const text = await response.text(); // přečteme odpověď jako text
+    const text = await response.text();
     let data = null;
-
     try {
-      data = JSON.parse(text); // pokus o převod na JSON
+      data = JSON.parse(text);
     } catch (e) {
       console.error("⚠ Neplatná JSON odpověď z Pi API:", text);
       return res.status(502).json({ error: "Invalid response from Pi API" });
@@ -47,31 +46,25 @@ app.post("/verify", async function (req, res) {
   }
 });
 
-// Platba – schválení platby
+// Pi platba: schválení (approve)
 app.post("/approve", async function (req, res) {
   const paymentId = req.body.paymentId;
-
   if (!paymentId) {
     return res.status(400).json({ error: "Missing paymentId" });
   }
-
-  console.log("✅ Platba připravena ke schválení: " + paymentId);
-
-  res.json({ success: true });
+  console.log("✅ Platba připravena ke schválení:", paymentId);
+  res.json({ success: true, paymentId: paymentId });
 });
 
-// Platba – finální potvrzení platby
+// Pi platba: finální potvrzení (complete)
 app.post("/complete", async function (req, res) {
   const paymentId = req.body.paymentId;
   const txid = req.body.txid;
-
   if (!paymentId || !txid) {
     return res.status(400).json({ error: "Missing paymentId or txid" });
   }
-
   console.log("✅ Platba potvrzena: paymentId=" + paymentId + ", txid=" + txid);
-
-  res.json({ success: true });
+  res.json({ success: true, paymentId: paymentId, txid: txid });
 });
 
 app.listen(PORT, function () {
