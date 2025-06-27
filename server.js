@@ -10,12 +10,42 @@ const API_KEY = "ncch7lagkhrgquydyvv8g6wu70irf6xogg2vutxqhjawrjuld8y38h0cmdovrto
 app.use(cors());
 app.use(express.json());
 
+app.post("/verify", async (req, res) => {
+  const accessToken = req.body.accessToken;
+  if (!accessToken) {
+    return res.status(400).json({ error: "Missing accessToken" });
+  }
+
+  try {
+    const response = await fetch("https://api.minepi.com/v2/me", {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(400).json({ error: "Invalid Pi accessToken" });
+    }
+
+    const user = await response.json();
+    if (user && user.username) {
+      res.json({ username: user.username });
+    } else {
+      res.status(400).json({ error: "No username in Pi user data" });
+    }
+  } catch (err) {
+    console.error("Pi /verify ERROR:", err);
+    res.status(500).json({ error: "Pi verify failed", details: err.message });
+  }
+});
+
 app.post("/approve", async (req, res) => {
   const paymentId = req.body.paymentId;
   if (!paymentId) return res.status(400).json({ error: "Missing paymentId" });
 
   try {
-    // API call to Pi server – approval
     const response = await fetch("https://api.minepi.com/v2/payments/" + paymentId + "/approve", {
       method: "POST",
       headers: {
@@ -38,7 +68,6 @@ app.post("/complete", async (req, res) => {
   if (!paymentId || !txid) return res.status(400).json({ error: "Missing paymentId or txid" });
 
   try {
-    // API call to Pi server – completion
     const response = await fetch("https://api.minepi.com/v2/payments/" + paymentId + "/complete", {
       method: "POST",
       headers: {
